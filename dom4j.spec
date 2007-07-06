@@ -2,7 +2,7 @@
 
 Name:           dom4j
 Version:        1.6.1
-Release:        %mkrel 2.2.1
+Release:        %mkrel 2.2.2
 Epoch:          0
 Summary:        Open Source XML framework for Java
 License:        BSD
@@ -12,6 +12,7 @@ Source0:        http://downloads.sourceforge.net/dom4j/dom4j-1.6.1.tar.gz
 Source1:        dom4j_rundemo.sh
 Patch0:         dom4j-1.6.1-build_xml.patch
 Patch1:         dom4j-gjdoc.patch
+Patch2:         dom4j-bug1618750.patch
 BuildRequires:  jpackage-utils >= 0:1.6
 BuildRequires:  ant >= 0:1.6
 BuildRequires:  junit
@@ -105,6 +106,7 @@ sed -e '/unjar/d' -e 's|,cookbook/\*\*,|,|' build.xml.orig > build.xml
 
 %patch0 -b .sav
 %patch1 -b .sav1
+%patch2 -p1 -b .sav2
 
 %build
 pushd lib
