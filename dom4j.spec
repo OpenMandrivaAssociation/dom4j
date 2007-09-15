@@ -2,7 +2,7 @@
 
 Name:           dom4j
 Version:        1.6.1
-Release:        %mkrel 2.2.2
+Release:        %mkrel 2.2.3
 Epoch:          0
 Summary:        Open Source XML framework for Java
 License:        BSD
@@ -52,8 +52,6 @@ Requires:  jaxp = 1.2
 # newer jaxp versions will not work
 Requires:  jaxp = 1.2
 %if %{gcj_support}
-Requires(post): java-gcj-compat
-Requires(postun): java-gcj-compat
 BuildRequires:  java-gcj-compat-devel
 %else
 BuildArch:      noarch
