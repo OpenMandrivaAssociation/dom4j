@@ -2,7 +2,7 @@
 
 Name:           dom4j
 Version:        1.6.1
-Release:        %mkrel 2.2.3
+Release:        %mkrel 2.2.4
 Epoch:          0
 Summary:        Open Source XML framework for Java
 License:        BSD
@@ -13,7 +13,7 @@ Source1:        dom4j_rundemo.sh
 Patch0:         dom4j-1.6.1-build_xml.patch
 Patch1:         dom4j-gjdoc.patch
 Patch2:         dom4j-bug1618750.patch
-BuildRequires:  jpackage-utils >= 0:1.6
+BuildRequires:  java-rpmbuild >= 0:1.6
 BuildRequires:  ant >= 0:1.6
 BuildRequires:  junit
 BuildRequires:  jtidy
