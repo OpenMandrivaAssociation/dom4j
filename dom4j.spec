@@ -57,7 +57,6 @@ BuildRequires:  java-gcj-compat-devel
 BuildArch:      noarch
 BuildRequires:  java-devel
 %endif
-BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root
 
 %description
 dom4j is an Open Source XML framework for Java. dom4j allows you to read,
