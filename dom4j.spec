@@ -2,7 +2,7 @@
 
 Name:           dom4j
 Version:        1.6.1
-Release:        %mkrel 2.2.5
+Release:        %mkrel 2.2.6
 Epoch:          0
 Summary:        Open Source XML framework for Java
 License:        BSD
