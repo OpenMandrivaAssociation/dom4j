@@ -1,10 +1,37 @@
-%define gcj_support 1
+# Copyright (c) 2000-2007, JPackage Project
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the
+#    distribution.
+# 3. Neither the name of the JPackage Project nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
 
+Summary:        Open Source XML framework for Java
 Name:           dom4j
 Version:        1.6.1
-Release:        %mkrel 2.2.7
-Epoch:          0
-Summary:        Open Source XML framework for Java
+Release:        6
 License:        BSD
 URL:            http://www.dom4j.org/
 Group:          Development/Java
@@ -12,8 +39,7 @@ Source0:        http://downloads.sourceforge.net/dom4j/dom4j-1.6.1.tar.gz
 Source1:        dom4j_rundemo.sh
 Patch0:         dom4j-1.6.1-build_xml.patch
 Patch1:         dom4j-gjdoc.patch
-Patch2:         dom4j-bug1618750.patch
-BuildRequires:  java-rpmbuild >= 0:1.6
+BuildRequires:  jpackage-utils >= 0:1.6
 BuildRequires:  ant >= 0:1.6
 BuildRequires:  junit
 BuildRequires:  jtidy
@@ -51,13 +77,8 @@ Requires:  jaxp = 1.2
 # package needs this specific version of jaxp.
 # newer jaxp versions will not work
 Requires:  jaxp = 1.2
-%if %{gcj_support}
-BuildRequires:  java-gcj-compat-devel
-%else
 BuildArch:      noarch
-BuildRequires:  java-devel
-%endif
-BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root
+BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n) 
 
 %description
 dom4j is an Open Source XML framework for Java. dom4j allows you to read,
@@ -104,7 +125,6 @@ sed -e '/unjar/d' -e 's|,cookbook/\*\*,|,|' build.xml.orig > build.xml
 
 %patch0 -b .sav
 %patch1 -b .sav1
-%patch2 -p1 -b .sav2
 
 %build
 pushd lib
@@ -136,7 +156,7 @@ popd
 popd
 
 # FIXME: test needs to be fixed
-%{ant} all samples # test
+ant all samples # test
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -176,20 +196,8 @@ cp -pr src/samples $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}/src
 cp -pr build/classes/org/dom4j/samples $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}/classes/org/dom4j
 install -m 755 run.sh $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}
 
-%if %{gcj_support}
-%{_bindir}/aot-compile-rpm
-%endif
-
 %clean
 rm -rf $RPM_BUILD_ROOT
-
-%if %{gcj_support}
-%post
-%{update_gcjdb}
-
-%postun
-%{clean_gcjdb}
-%endif
 
 %files
 %defattr(0644,root,root,0755)
@@ -197,10 +205,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_docdir}/%{name}-%{version}/LICENSE.txt
 %{_javadir}/%{name}.jar
 %{_javadir}/%{name}-%{version}.jar
-%if %{gcj_support}
-%dir %{_libdir}/gcj/%{name}
-%attr(-,root,root) %{_libdir}/gcj/%{name}/*
-%endif
 
 %files javadoc
 %defattr(0644,root,root,0755)
@@ -214,3 +218,4 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(0644,root,root,0755)
 %attr(0755,root,root) %{_datadir}/%{name}-%{version}/run.sh
 %{_datadir}/%{name}-%{version}
+
