@@ -31,7 +31,7 @@
 Summary:        Open Source XML framework for Java
 Name:           dom4j
 Version:        1.6.1
-Release:        6
+Release:        8
 License:        BSD
 URL:            http://www.dom4j.org/
 Group:          Development/Java
