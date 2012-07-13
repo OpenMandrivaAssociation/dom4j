@@ -38,7 +38,6 @@ Group:          Development/Java
 Source0:        http://downloads.sourceforge.net/dom4j/dom4j-1.6.1.tar.gz
 Source1:        dom4j_rundemo.sh
 Patch0:         dom4j-1.6.1-build_xml.patch
-Patch1:         dom4j-gjdoc.patch
 BuildRequires:  jpackage-utils >= 0:1.6
 BuildRequires:  ant >= 0:1.6
 BuildRequires:  junit
@@ -57,9 +56,6 @@ BuildRequires:  jaxp = 1.2
 BuildRequires:  xpp2
 BuildRequires:  xpp3
 BuildRequires:  msv-xsdlib
-# package needs this specific version of jaxp
-# newer jaxp versions will not work
-BuildRequires:  jaxp = 1.2
 Requires:  xpp2
 Requires:  xpp3
 Requires:  xerces-j2
@@ -73,12 +69,7 @@ Requires:  bea-stax
 Requires:  bea-stax-api
 Requires:  ws-jaxme
 Requires:  xalan-j2
-Requires:  jaxp = 1.2
-# package needs this specific version of jaxp.
-# newer jaxp versions will not work
-Requires:  jaxp = 1.2
 BuildArch:      noarch
-BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n) 
 
 %description
 dom4j is an Open Source XML framework for Java. dom4j allows you to read,
@@ -98,7 +89,7 @@ Summary:        Manual for %{name}
 Group:          Development/Java
 
 %description manual
-Documentation for %{name}.
+Development/Java for %{name}.
 
 %package javadoc
 Summary:        Javadoc for %{name}
@@ -109,30 +100,21 @@ Javadoc for %{name}.
 
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q 
 # replace run.sh
 cp -p %{SOURCE1} run.sh
 # remove binary libs
 find . -name "*.jar" -exec rm -f {} \;
-#for j in $(find . -name "*.jar"); do 
-#       mv $j $j.no
-#done
-# won't succeed in headless environment
-rm src/test/org/dom4j/bean/BeansTest.java
 # fix for deleted jars
 mv build.xml build.xml.orig
 sed -e '/unjar/d' -e 's|,cookbook/\*\*,|,|' build.xml.orig > build.xml
 
 %patch0 -b .sav
-%patch1 -b .sav1
 
 %build
 pushd lib
 ln -sf $(build-classpath xpp2)
 ln -sf $(build-classpath relaxngDatatype)
-pushd endorsed
-ln -sf $(build-classpath xml-commons-jaxp-1.2-apis) 
-popd
 ln -sf $(build-classpath jaxme/jaxmeapi) 
 ln -sf $(build-classpath msv-xsdlib) 
 ln -sf $(build-classpath msv-msv) 
@@ -159,22 +141,19 @@ popd
 ant all samples # test
 
 %install
-rm -rf $RPM_BUILD_ROOT
-
 # jars
 mkdir -p $RPM_BUILD_ROOT%{_javadir}
 cp -p build/%{name}.jar \
-  $RPM_BUILD_ROOT%{_javadir}/%{name}-%{version}.jar
-(cd $RPM_BUILD_ROOT%{_javadir} && for jar in *-%{version}.jar; do ln -sf ${jar} `echo $jar| sed "s|-%{version}||g"`; done)
+  $RPM_BUILD_ROOT%{_javadir}/%{name}.jar
 
 # javadoc
-mkdir -p $RPM_BUILD_ROOT%{_javadocdir}/%{name}-%{version}
+mkdir -p $RPM_BUILD_ROOT%{_javadocdir}/%{name}
 pushd build/doc/javadoc
 for f in `find -name \*.html -o -name \*.css`; do
   sed -i 's/\r//g' $f;
 done
 popd
-cp -pr build/doc/javadoc/* $RPM_BUILD_ROOT%{_javadocdir}/%{name}-%{version}
+cp -pr build/doc/javadoc/* $RPM_BUILD_ROOT%{_javadocdir}/%{name}
 
 # manual
 mkdir -p $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}
@@ -196,26 +175,20 @@ cp -pr src/samples $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}/src
 cp -pr build/classes/org/dom4j/samples $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}/classes/org/dom4j
 install -m 755 run.sh $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
 %files
-%defattr(0644,root,root,0755)
 %dir %{_docdir}/%{name}-%{version}
-%doc %{_docdir}/%{name}-%{version}/LICENSE.txt
 %{_javadir}/%{name}.jar
-%{_javadir}/%{name}-%{version}.jar
 
 %files javadoc
-%defattr(0644,root,root,0755)
 %{_javadocdir}/*
 
 %files manual
-%defattr(0644,root,root,0755)
 %doc %{_docdir}/%{name}-%{version}
 
 %files demo
-%defattr(0644,root,root,0755)
 %attr(0755,root,root) %{_datadir}/%{name}-%{version}/run.sh
-%{_datadir}/%{name}-%{version}
+%dir %{_datadir}/%{name}-%{version}
+%{_datadir}/%{name}-%{version}/src
+%{_datadir}/%{name}-%{version}/xml
+%{_datadir}/%{name}-%{version}/classes
 
