@@ -192,3 +192,45 @@ install -m 755 run.sh $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}
 %{_datadir}/%{name}-%{version}/xml
 %{_datadir}/%{name}-%{version}/classes
 
+
+
+%changelog
+* Fri Jul 13 2012 Guilherme Moro <guilherme@mandriva.com> 1.6.1-8
++ Revision: 809256
+- rebuild
+- imported package dom4j
+
+* Tue Apr 26 2011 Paulo Andrade <pcpa@mandriva.com.br> 0:1.6.1-2.2.7
++ Revision: 659461
+- Rebuild
+
+  + Oden Eriksson <oeriksson@mandriva.com>
+    - rebuild
+
+* Sat Mar 07 2009 Antoine Ginies <aginies@mandriva.com> 0:1.6.1-2.2.5mdv2009.1
++ Revision: 350834
+- rebuild
+
+* Fri Dec 21 2007 Olivier Blin <blino@mandriva.org> 0:1.6.1-2.2.4mdv2008.1
++ Revision: 136373
+- restore BuildRoot
+
+  + Thierry Vignaud <tv@mandriva.org>
+    - kill re-definition of %%buildroot on Pixel's request
+
+  + Anssi Hannula <anssi@mandriva.org>
+    - buildrequire java-rpmbuild, i.e. build with icedtea on x86(_64)
+
+* Sat Sep 15 2007 Anssi Hannula <anssi@mandriva.org> 0:1.6.1-2.2.3mdv2008.0
++ Revision: 87332
+- rebuild to filter out autorequires of GCJ AOT objects
+- remove unnecessary Requires(post) on java-gcj-compat
+
+* Fri Jul 06 2007 David Walluck <walluck@mandriva.org> 0:1.6.1-2.2.2mdv2008.0
++ Revision: 48920
+- workaround dom4j bug #1618750
+
+* Wed Jul 04 2007 David Walluck <walluck@mandriva.org> 0:1.6.1-2.2.1mdv2008.0
++ Revision: 47796
+- Import dom4j
+
