@@ -1,0 +1,47 @@
+From cc644b2c2073acac30cc80d3a160c1007bad4213 Mon Sep 17 00:00:00 2001
+From: Michal Srb <msrb@redhat.com>
+Date: Tue, 2 Jul 2013 12:54:37 +0200
+Subject: [PATCH] Remove references to ConcurrentReaderHashMap
+
+File ConcurrentReaderHashMap.java has been removed due to unclear licensing
+---
+ src/java/org/dom4j/tree/NamespaceCache.java | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/java/org/dom4j/tree/NamespaceCache.java b/src/java/org/dom4j/tree/NamespaceCache.java
+index 89ff316..9b716de 100644
+--- a/src/java/org/dom4j/tree/NamespaceCache.java
++++ b/src/java/org/dom4j/tree/NamespaceCache.java
+@@ -9,7 +9,9 @@ package org.dom4j.tree;
+ 
+ import java.lang.ref.WeakReference;
+ import java.lang.reflect.Constructor;
++import java.lang.UnsupportedOperationException;
+ import java.util.Map;
++import java.util.concurrent.ConcurrentHashMap;
+ 
+ import org.dom4j.Namespace;
+ 
+@@ -59,9 +61,7 @@ public class NamespaceCache {
+                 cache = (Map) clazz.newInstance();
+                 noPrefixCache = (Map) clazz.newInstance();
+             } catch (Throwable t2) {
+-                /* If previous implementations fail, use internal one */
+-                cache = new ConcurrentReaderHashMap();
+-                noPrefixCache = new ConcurrentReaderHashMap();
++                throw new UnsupportedOperationException("ConcurrentReaderHashMap is not available");
+             }
+         }
+     }
+@@ -154,7 +154,7 @@ public class NamespaceCache {
+                 answer = (Map) cache.get(uri);
+ 
+                 if (answer == null) {
+-                    answer = new ConcurrentReaderHashMap();
++                    answer = new ConcurrentHashMap();
+                     cache.put(uri, answer);
+                 }
+             }
+-- 
+1.8.1.4
+

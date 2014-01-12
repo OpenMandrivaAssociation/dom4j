@@ -1,3 +1,4 @@
+%{?_javapackages_macros:%_javapackages_macros}
 # Copyright (c) 2000-2007, JPackage Project
 # All rights reserved.
 #
@@ -31,18 +32,25 @@
 Summary:        Open Source XML framework for Java
 Name:           dom4j
 Version:        1.6.1
-Release:        8
+Release:        19.1%{?dist}
+Epoch:          0
 License:        BSD
 URL:            http://www.dom4j.org/
-Group:          Development/Java
-Source0:        http://downloads.sourceforge.net/dom4j/dom4j-1.6.1.tar.gz
+
+# ./create-tarball.sh
+Source0:        %{name}-%{version}-clean.tar.xz
 Source1:        dom4j_rundemo.sh
+Source2:        http://repo1.maven.org/maven2/%{name}/%{name}/%{version}/%{name}-%{version}.pom
+Source3:        create-tarball.sh
 Patch0:         dom4j-1.6.1-build_xml.patch
+# See https://bugzilla.redhat.com/show_bug.cgi?id=976180
+Patch1:         dom4j-1.6.1-Remove-references-to-ConcurrentReaderHashMap.patch
+Patch2:         dom4j-1.6.1-Port-to-JAXP-1.4.patch
 BuildRequires:  jpackage-utils >= 0:1.6
 BuildRequires:  ant >= 0:1.6
-BuildRequires:  junit
+#BuildRequires:  junit
 BuildRequires:  jtidy
-BuildRequires:  junitperf
+#BuildRequires:  junitperf
 BuildRequires:  isorelax
 BuildRequires:  jaxen-bootstrap >= 0:1.1-0.b7
 BuildRequires:  msv-msv
@@ -52,7 +60,6 @@ BuildRequires:  bea-stax-api
 BuildRequires:  ws-jaxme
 BuildRequires:  xalan-j2
 BuildRequires:  xerces-j2
-BuildRequires:  jaxp = 1.2
 BuildRequires:  xpp2
 BuildRequires:  xpp3
 BuildRequires:  msv-xsdlib
@@ -78,7 +85,7 @@ DOM and SAX and is seamlessly integrated with full XPath support.
 
 %package demo
 Summary:        Samples for %{name}
-Group:          Development/Java
+
 Requires:       dom4j = 0:%{version}-%{release}
 
 %description demo
@@ -86,14 +93,14 @@ Samples for %{name}.
 
 %package manual
 Summary:        Manual for %{name}
-Group:          Development/Java
+
 
 %description manual
-Development/Java for %{name}.
+Documentation for %{name}.
 
 %package javadoc
 Summary:        Javadoc for %{name}
-Group:          Development/Java
+
 
 %description javadoc
 Javadoc for %{name}.
@@ -103,13 +110,13 @@ Javadoc for %{name}.
 %setup -q 
 # replace run.sh
 cp -p %{SOURCE1} run.sh
-# remove binary libs
-find . -name "*.jar" -exec rm -f {} \;
 # fix for deleted jars
 mv build.xml build.xml.orig
 sed -e '/unjar/d' -e 's|,cookbook/\*\*,|,|' build.xml.orig > build.xml
 
 %patch0 -b .sav
+%patch1 -p1
+%patch2 -p1
 
 %build
 pushd lib
@@ -120,11 +127,11 @@ ln -sf $(build-classpath msv-xsdlib)
 ln -sf $(build-classpath msv-msv) 
 ln -sf $(build-classpath jaxen) 
 ln -sf $(build-classpath bea-stax-api) 
-pushd test
-ln -sf $(build-classpath bea-stax-ri) 
-ln -sf $(build-classpath junitperf) 
-ln -sf $(build-classpath junit) 
-popd
+#pushd test
+#ln -sf $(build-classpath bea-stax-ri)
+#ln -sf $(build-classpath junitperf)
+#ln -sf $(build-classpath junit)
+#popd
 ln -sf $(build-classpath xpp3) 
 pushd tools
 ln -sf $(build-classpath jaxme/jaxmexs) 
@@ -156,16 +163,16 @@ popd
 cp -pr build/doc/javadoc/* $RPM_BUILD_ROOT%{_javadocdir}/%{name}
 
 # manual
-mkdir -p $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}
+mkdir -p $RPM_BUILD_ROOT%{_docdir}/%{name}
 rm -rf docs/apidocs docs/clover
 pushd docs
 for f in `find -name \*.html -o -name \*.css -o -name \*.java`; do
   sed -i 's/\r//g' $f;
 done
 popd
-cp -pr docs/* $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}
+cp -pr docs/* $RPM_BUILD_ROOT%{_docdir}/%{name}
 tr -d \\r <LICENSE.txt >tmp.file; mv tmp.file LICENSE.txt
-cp -p LICENSE.txt $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}
+cp -p LICENSE.txt $RPM_BUILD_ROOT%{_docdir}/%{name}
 
 # demo
 mkdir -p $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}/classes/org/dom4j
@@ -175,62 +182,116 @@ cp -pr src/samples $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}/src
 cp -pr build/classes/org/dom4j/samples $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}/classes/org/dom4j
 install -m 755 run.sh $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}
 
+# POM and depmap
+install -d -m 755 $RPM_BUILD_ROOT%{_mavenpomdir}
+install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_mavenpomdir}/JPP-%{name}.pom
+%add_maven_depmap
+
 %files
-%dir %{_docdir}/%{name}-%{version}
+%dir %{_docdir}/%{name}
+%doc %{_docdir}/%{name}/LICENSE.txt
 %{_javadir}/%{name}.jar
+%{_mavenpomdir}/JPP-%{name}.pom
+%{_mavendepmapfragdir}/%{name}
 
 %files javadoc
+%dir %{_docdir}/%{name}
+%doc %{_docdir}/%{name}/LICENSE.txt
 %{_javadocdir}/*
 
 %files manual
-%doc %{_docdir}/%{name}-%{version}
+%doc %{_docdir}/%{name}
 
 %files demo
 %attr(0755,root,root) %{_datadir}/%{name}-%{version}/run.sh
-%dir %{_datadir}/%{name}-%{version}
-%{_datadir}/%{name}-%{version}/src
-%{_datadir}/%{name}-%{version}/xml
-%{_datadir}/%{name}-%{version}/classes
-
-
+%{_datadir}/%{name}-%{version}
 
 %changelog
-* Fri Jul 13 2012 Guilherme Moro <guilherme@mandriva.com> 1.6.1-8
-+ Revision: 809256
-- rebuild
-- imported package dom4j
+* Wed Oct 16 2013 Michal Srb <msrb@redhat.com> - 0:1.6.1-19
+- Port to JAXP 1.4
 
-* Tue Apr 26 2011 Paulo Andrade <pcpa@mandriva.com.br> 0:1.6.1-2.2.7
-+ Revision: 659461
-- Rebuild
+* Wed Aug 07 2013 Michal Srb <msrb@redhat.com> - 0:1.6.1-18
+- Unversioned doc dir (Resolves: #993729)
+- See: http://fedoraproject.org/wiki/Changes/UnversionedDocdirs
 
-  + Oden Eriksson <oeriksson@mandriva.com>
-    - rebuild
+* Fri Aug 02 2013 Michal Srb <msrb@redhat.com> - 0:1.6.1-17
+- Add create-tarball.sh script to SRPM
 
-* Sat Mar 07 2009 Antoine Ginies <aginies@mandriva.com> 0:1.6.1-2.2.5mdv2009.1
-+ Revision: 350834
-- rebuild
+* Thu Jul 25 2013 Michal Srb <msrb@redhat.com> - 0:1.6.1-16
+- Properly remove references to ConcurrentReaderHashMap
 
-* Fri Dec 21 2007 Olivier Blin <blino@mandriva.org> 0:1.6.1-2.2.4mdv2008.1
-+ Revision: 136373
-- restore BuildRoot
+* Tue Jul 02 2013 Michal Srb <msrb@redhat.com> - 0:1.6.1-15
+- Remove file with unclear licensing (Resolves: rhbz#976180)
 
-  + Thierry Vignaud <tv@mandriva.org>
-    - kill re-definition of %%buildroot on Pixel's request
+* Wed Jun 19 2013 Michal Srb <msrb@redhat.com> - 0:1.6.1-14
+- Install license file with javadoc subpackage
 
-  + Anssi Hannula <anssi@mandriva.org>
-    - buildrequire java-rpmbuild, i.e. build with icedtea on x86(_64)
+* Wed Feb 13 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:1.6.1-13
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
 
-* Sat Sep 15 2007 Anssi Hannula <anssi@mandriva.org> 0:1.6.1-2.2.3mdv2008.0
-+ Revision: 87332
-- rebuild to filter out autorequires of GCJ AOT objects
-- remove unnecessary Requires(post) on java-gcj-compat
+* Thu Nov  1 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0:1.6.1-12
+- Add maven POM
 
-* Fri Jul 06 2007 David Walluck <walluck@mandriva.org> 0:1.6.1-2.2.2mdv2008.0
-+ Revision: 48920
-- workaround dom4j bug #1618750
+* Mon Oct 29 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0:1.6.1-11
+- Cleanup source tarball from non-free content
+- Resolves: rhbz#848875
 
-* Wed Jul 04 2007 David Walluck <walluck@mandriva.org> 0:1.6.1-2.2.1mdv2008.0
-+ Revision: 47796
-- Import dom4j
+* Fri Oct 12 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0:1.6.1-10
+- Disable test dependencies because tests are skipped
 
+* Wed Jul 18 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:1.6.1-9
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
+
+* Fri Apr 6 2012 Alexander Kurtakov <akurtako@redhat.com> 0:1.6.1-8
+- Simplify packaging and remove old things.
+
+* Fri Jan 13 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:1.6.1-7
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
+
+* Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:1.6.1-6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
+
+* Fri Jul 24 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:1.6.1-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
+
+* Tue Feb 24 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:1.6.1-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
+
+* Wed Jul  9 2008 Tom "spot" Callaway <tcallawa@redhat.com> 1.6.1-3
+- drop repotag
+
+* Wed Oct 17 2007 Deepak Bhole <dbhole@redhat.com> 1.6.1-2jpp.3
+- Resaolve bz#302321: Add copyright header that was accidentally removed.
+
+* Mon Mar 26 2007 Nuno Santos <nsantos@redhat.com> - 0:1.6.1-2jpp.2
+- fix unowned directory
+
+* Wed Feb 14 2007 Jeff Johnston <jjohnstn@redhat.com> - 0:1.6.1-2jpp.1
+- Resolves: #227049
+- Updated per Fedora package review process
+- Modified dom4j-1.6.1-build_xml.patch to include jaxp 1.2 apis on
+  boot classpath
+- Added new patch for javadocs
+- Add buildrequires for jaxp = 1.2
+
+* Mon Jan 30 2006 Ralph Apel <r.apel@r-apel.de> - 0:1.6.1-2jpp
+- Change STAX dependency to free bea-stax and bea-stax-api
+
+* Wed Aug 17 2005 Ralph Apel <r.apel@r-apel.de> - 0:1.6.1-1jpp
+- Upgrade to 1.6.1
+- Now requires xpp3 additionally to xpp2
+
+* Thu Sep 09 2004 Ralph Apel <r.apel@r-apel.de> - 0:1.5-1jpp
+- Upgrade to 1.5
+- Drop saxpath requirement as this is now included in jaxen
+
+* Fri Aug 20 2004 Ralph Apel <r.apel@r-apel.de> - 0:1.4-3jpp
+- Upgrade to Ant 1.6.X
+- Build with ant-1.6.2
+
+* Tue Jul 06 2004 Ralph Apel <r.apel@r-apel.de> - 0:1.4-2jpp
+- Replace non-free msv with free relaxngDatatype xsdlib isorelax msv-strict
+- Relax some versioned dependencies
+
+* Mon Jan 19 2004 Ralph Apel <r.apel@r-apel.de> - 0:1.4-1jpp
+- First JPackage release

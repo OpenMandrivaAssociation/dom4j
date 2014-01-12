@@ -1,0 +1,327 @@
+From d13867cbaf5bd11dfbdc29d258e126609a22794b Mon Sep 17 00:00:00 2001
+From: Michal Srb <msrb@redhat.com>
+Date: Wed, 16 Oct 2013 08:50:21 +0200
+Subject: [PATCH] Port to JAXP 1.4
+
+JAXP 1.4 is part of JDK 7
+---
+ src/java/org/dom4j/dom/DOMDocumentFactory.java |  5 +++
+ src/java/org/dom4j/tree/AbstractDocument.java  | 62 ++++++++++++++++++++++++++
+ src/java/org/dom4j/tree/AbstractElement.java   | 18 +++++++-
+ src/java/org/dom4j/tree/AbstractNode.java      | 61 +++++++++++++++++++++++++
+ src/java/org/dom4j/tree/AbstractText.java      | 15 +++++++
+ src/java/org/dom4j/tree/DefaultCDATA.java      | 16 +++++++
+ 6 files changed, 176 insertions(+), 1 deletion(-)
+
+diff --git a/src/java/org/dom4j/dom/DOMDocumentFactory.java b/src/java/org/dom4j/dom/DOMDocumentFactory.java
+index 04f29c8..6b216a7 100644
+--- a/src/java/org/dom4j/dom/DOMDocumentFactory.java
++++ b/src/java/org/dom4j/dom/DOMDocumentFactory.java
+@@ -8,6 +8,7 @@
+ package org.dom4j.dom;
+ 
+ import java.util.Map;
++import java.lang.UnsupportedOperationException;
+ 
+ import org.dom4j.Attribute;
+ import org.dom4j.CDATA;
+@@ -174,6 +175,10 @@ public class DOMDocumentFactory extends DocumentFactory implements
+                     docType.getPublicId(), docType.getSystemId());
+         }
+     }
++
++    public Object getFeature(String feature, String version) {
++        throw new UnsupportedOperationException("Not implemented");
++    }
+ }
+ 
+ 
+diff --git a/src/java/org/dom4j/tree/AbstractDocument.java b/src/java/org/dom4j/tree/AbstractDocument.java
+index 9c2bee7..74a526b 100644
+--- a/src/java/org/dom4j/tree/AbstractDocument.java
++++ b/src/java/org/dom4j/tree/AbstractDocument.java
+@@ -13,6 +13,7 @@ import java.io.Writer;
+ import java.util.Iterator;
+ import java.util.List;
+ import java.util.Map;
++import java.lang.UnsupportedOperationException;
+ 
+ import org.dom4j.Comment;
+ import org.dom4j.Document;
+@@ -26,6 +27,8 @@ import org.dom4j.Text;
+ import org.dom4j.Visitor;
+ import org.dom4j.io.OutputFormat;
+ import org.dom4j.io.XMLWriter;
++import org.w3c.dom.DOMConfiguration;
++import org.w3c.dom.DOMException;
+ 
+ /**
+  * <p>
+@@ -256,6 +259,65 @@ public abstract class AbstractDocument extends AbstractBranch implements
+     public void setXMLEncoding(String enc) {
+         this.encoding = enc;
+     }
++
++    public String getInputEncoding() {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public String getXmlEncoding() {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public boolean getXmlStandalone() {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public void setXmlStandalone(boolean xmlStandalone) throws DOMException {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public String getXmlVersion() {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public void setXmlVersion(String xmlVersion) throws DOMException {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public boolean getStrictErrorChecking() {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public void setStrictErrorChecking(boolean strictErrorChecking) {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public String getDocumentURI() {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public void setDocumentURI(String documentURI) {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public org.w3c.dom.Node adoptNode(org.w3c.dom.Node source)
++            throws DOMException {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public DOMConfiguration getDomConfig() {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public void normalizeDocument() {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public org.w3c.dom.Node renameNode(org.w3c.dom.Node n, String namespaceURI,
++            String qualifiedName)
++            throws DOMException {
++        throw new UnsupportedOperationException("Not implemented");
++    }
+ }
+ 
+ /*
+diff --git a/src/java/org/dom4j/tree/AbstractElement.java b/src/java/org/dom4j/tree/AbstractElement.java
+index e2a7c81..f15c660 100644
+--- a/src/java/org/dom4j/tree/AbstractElement.java
++++ b/src/java/org/dom4j/tree/AbstractElement.java
+@@ -15,6 +15,7 @@ import java.util.Collections;
+ import java.util.Iterator;
+ import java.util.List;
+ import java.util.Map;
++import java.lang.UnsupportedOperationException;
+ 
+ import org.dom4j.Attribute;
+ import org.dom4j.CDATA;
+@@ -33,7 +34,8 @@ import org.dom4j.Text;
+ import org.dom4j.Visitor;
+ import org.dom4j.io.OutputFormat;
+ import org.dom4j.io.XMLWriter;
+-
++import org.w3c.dom.Attr;
++import org.w3c.dom.DOMException;
+ import org.xml.sax.Attributes;
+ 
+ /**
+@@ -1644,6 +1646,20 @@ public abstract class AbstractElement extends AbstractBranch implements
+     protected Iterator createSingleIterator(Object result) {
+         return new SingleIterator(result);
+     }
++
++    public void setIdAttribute(String name, boolean isId) throws DOMException {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public void setIdAttributeNS(String namespaceURI, String localName,
++            boolean isId) throws DOMException {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public void setIdAttributeNode(Attr idAttr, boolean isId)
++            throws DOMException {
++        throw new UnsupportedOperationException("Not implemented");
++    }
+ }
+ 
+ /*
+diff --git a/src/java/org/dom4j/tree/AbstractNode.java b/src/java/org/dom4j/tree/AbstractNode.java
+index 783e164..d388091 100644
+--- a/src/java/org/dom4j/tree/AbstractNode.java
++++ b/src/java/org/dom4j/tree/AbstractNode.java
+@@ -11,6 +11,7 @@ import java.io.IOException;
+ import java.io.Serializable;
+ import java.io.Writer;
+ import java.util.List;
++import java.lang.UnsupportedOperationException;
+ 
+ import org.dom4j.Document;
+ import org.dom4j.DocumentFactory;
+@@ -19,6 +20,9 @@ import org.dom4j.Node;
+ import org.dom4j.NodeFilter;
+ import org.dom4j.XPath;
+ import org.dom4j.rule.Pattern;
++import org.w3c.dom.DOMException;
++import org.w3c.dom.TypeInfo;
++import org.w3c.dom.UserDataHandler;
+ 
+ /**
+  * <p>
+@@ -231,6 +235,63 @@ public abstract class AbstractNode implements Node, Cloneable, Serializable {
+         throw new RuntimeException("asXPathResult() not yet implemented fully "
+                 + "for: " + this);
+     }
++
++    public String getBaseURI() {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public short compareDocumentPosition(org.w3c.dom.Node other)
++            throws DOMException {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public String getTextContent() throws DOMException {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public void setTextContent(String textContent) throws DOMException {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public boolean isSameNode(org.w3c.dom.Node other) {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public String lookupPrefix(String namespaceURI) {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public boolean isDefaultNamespace(String namespaceURI) {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public String lookupNamespaceURI(String prefix) {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public boolean isEqualNode(org.w3c.dom.Node arg) {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public Object getFeature(String feature, String version) {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public Object setUserData(String key, Object data, UserDataHandler handler) {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public Object getUserData(String key) {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public TypeInfo getSchemaTypeInfo() {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public boolean isId() {
++        throw new UnsupportedOperationException("Not implemented");
++    }
+ }
+ 
+ /*
+diff --git a/src/java/org/dom4j/tree/AbstractText.java b/src/java/org/dom4j/tree/AbstractText.java
+index f64fccf..37dd592 100644
+--- a/src/java/org/dom4j/tree/AbstractText.java
++++ b/src/java/org/dom4j/tree/AbstractText.java
+@@ -9,8 +9,10 @@ package org.dom4j.tree;
+ 
+ import java.io.IOException;
+ import java.io.Writer;
++import java.lang.UnsupportedOperationException;
+ 
+ import org.dom4j.Visitor;
++import org.w3c.dom.DOMException;
+ 
+ /**
+  * <p>
+@@ -45,6 +47,19 @@ public abstract class AbstractText extends AbstractCharacterData implements
+     public void accept(Visitor visitor) {
+         visitor.visit(this);
+     }
++
++    public boolean isElementContentWhitespace() {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public String getWholeText() {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public org.w3c.dom.Text replaceWholeText(String content)
++            throws DOMException {
++        throw new UnsupportedOperationException("Not implemented");
++    }
+ }
+ 
+ /*
+diff --git a/src/java/org/dom4j/tree/DefaultCDATA.java b/src/java/org/dom4j/tree/DefaultCDATA.java
+index f17d20f..6714be2 100644
+--- a/src/java/org/dom4j/tree/DefaultCDATA.java
++++ b/src/java/org/dom4j/tree/DefaultCDATA.java
+@@ -7,7 +7,11 @@
+ 
+ package org.dom4j.tree;
+ 
++import java.lang.UnsupportedOperationException;
++
+ import org.dom4j.Element;
++import org.w3c.dom.DOMException;
++import org.w3c.dom.Text;
+ 
+ /**
+  * <p>
+@@ -65,6 +69,18 @@ public class DefaultCDATA extends FlyweightCDATA {
+     public boolean isReadOnly() {
+         return false;
+     }
++
++    public boolean isElementContentWhitespace() {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public String getWholeText() {
++        throw new UnsupportedOperationException("Not implemented");
++    }
++
++    public Text replaceWholeText(String content) throws DOMException {
++        throw new UnsupportedOperationException("Not implemented");
++    }
+ }
+ 
+ /*
+-- 
+1.8.3.1
+
