@@ -32,11 +32,11 @@
 Summary:        Open Source XML framework for Java
 Name:           dom4j
 Version:        1.6.1
-Release:        19.1%{?dist}
+Release:        22.1
 Epoch:          0
 License:        BSD
 URL:            http://www.dom4j.org/
-
+Group:          Development/Java
 # ./create-tarball.sh
 Source0:        %{name}-%{version}-clean.tar.xz
 Source1:        dom4j_rundemo.sh
@@ -46,6 +46,8 @@ Patch0:         dom4j-1.6.1-build_xml.patch
 # See https://bugzilla.redhat.com/show_bug.cgi?id=976180
 Patch1:         dom4j-1.6.1-Remove-references-to-ConcurrentReaderHashMap.patch
 Patch2:         dom4j-1.6.1-Port-to-JAXP-1.4.patch
+# Needed by stapler web framework
+Patch3:         dom4j-1.6.1-Add-ability-to-disable-HTML-handling.patch
 BuildRequires:  jpackage-utils >= 0:1.6
 BuildRequires:  ant >= 0:1.6
 #BuildRequires:  junit
@@ -85,7 +87,7 @@ DOM and SAX and is seamlessly integrated with full XPath support.
 
 %package demo
 Summary:        Samples for %{name}
-
+Group:          Documentation
 Requires:       dom4j = 0:%{version}-%{release}
 
 %description demo
@@ -93,14 +95,14 @@ Samples for %{name}.
 
 %package manual
 Summary:        Manual for %{name}
-
+Group:          Documentation
 
 %description manual
 Documentation for %{name}.
 
 %package javadoc
 Summary:        Javadoc for %{name}
-
+Group:          Documentation
 
 %description javadoc
 Javadoc for %{name}.
@@ -117,6 +119,7 @@ sed -e '/unjar/d' -e 's|,cookbook/\*\*,|,|' build.xml.orig > build.xml
 %patch0 -b .sav
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
 
 %build
 pushd lib
@@ -185,14 +188,11 @@ install -m 755 run.sh $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}
 # POM and depmap
 install -d -m 755 $RPM_BUILD_ROOT%{_mavenpomdir}
 install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_mavenpomdir}/JPP-%{name}.pom
-%add_maven_depmap
+%add_maven_depmap -a "org.jvnet.hudson.dom4j:dom4j"
 
-%files
+%files -f .mfiles
 %dir %{_docdir}/%{name}
 %doc %{_docdir}/%{name}/LICENSE.txt
-%{_javadir}/%{name}.jar
-%{_mavenpomdir}/JPP-%{name}.pom
-%{_mavendepmapfragdir}/%{name}
 
 %files javadoc
 %dir %{_docdir}/%{name}
@@ -207,6 +207,15 @@ install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_mavenpomdir}/JPP-%{name}.pom
 %{_datadir}/%{name}-%{version}
 
 %changelog
+* Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:1.6.1-22
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
+
+* Thu May 29 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 0:1.6.1-21
+- Use .mfiles generated during build
+
+* Fri Dec 06 2013 Michal Srb <msrb@redhat.com> - 0:1.6.1-20
+- Add ability to disable HTML handling
+
 * Wed Oct 16 2013 Michal Srb <msrb@redhat.com> - 0:1.6.1-19
 - Port to JAXP 1.4
 
@@ -295,3 +304,4 @@ install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_mavenpomdir}/JPP-%{name}.pom
 
 * Mon Jan 19 2004 Ralph Apel <r.apel@r-apel.de> - 0:1.4-1jpp
 - First JPackage release
+
