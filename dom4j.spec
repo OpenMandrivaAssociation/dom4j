@@ -35,7 +35,7 @@ Version:        1.6.1
 Release:        22.3
 Epoch:          0
 License:        BSD
-URL:            http://www.dom4j.org/
+URL:            https://www.dom4j.org/
 Group:          Development/Java
 # ./create-tarball.sh
 Source0:        %{name}-%{version}-clean.tar.xz
