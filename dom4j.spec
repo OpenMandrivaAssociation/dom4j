@@ -1,307 +1,171 @@
-%{?_javapackages_macros:%_javapackages_macros}
-# Copyright (c) 2000-2007, JPackage Project
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-# 1. Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-# 2. Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the
-#    distribution.
-# 3. Neither the name of the JPackage Project nor the names of its
-#    contributors may be used to endorse or promote products derived
-#    from this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+Name:		dom4j
+Version:	2.2.0
+Release:	1
+Epoch:		0
+Summary:	XML framework for Java
+Group:		Development/Java
+License:	BSD
+URL:		https://dom4j.github.io/
+Source0:	https://codeload.github.com/dom4j/dom4j/tar.gz/refs/tags/version/2.2.0#/dom4j-%{version}.tar.gz
+# Navigator sources. The system jaxen jar omits this adapter.
+Source1:	https://github.com/jaxen-xpath/jaxen/archive/refs/tags/v2.0.6.tar.gz#/jaxen-2.0.6.tar.gz
 
-Summary:        Open Source XML framework for Java
-Name:           dom4j
-Version:        1.6.1
-Release:        22.3
-Epoch:          0
-License:        BSD
-URL:            https://www.dom4j.org/
-Group:          Development/Java
-# ./create-tarball.sh
-Source0:        %{name}-%{version}-clean.tar.xz
-Source1:        dom4j_rundemo.sh
-Source2:        http://repo1.maven.org/maven2/%{name}/%{name}/%{version}/%{name}-%{version}.pom
-Source3:        create-tarball.sh
-Patch0:         dom4j-1.6.1-build_xml.patch
-# See https://bugzilla.redhat.com/show_bug.cgi?id=976180
-Patch1:         dom4j-1.6.1-Remove-references-to-ConcurrentReaderHashMap.patch
-Patch2:         dom4j-1.6.1-Port-to-JAXP-1.4.patch
-# Needed by stapler web framework
-Patch3:         dom4j-1.6.1-Add-ability-to-disable-HTML-handling.patch
-BuildRequires:  jpackage-utils >= 0:1.6
-BuildRequires:  ant >= 0:1.6
-#BuildRequires:  junit
-BuildRequires:  jtidy
-#BuildRequires:  junitperf
-BuildRequires:  isorelax
-BuildRequires:  jaxen-bootstrap >= 0:1.1-0.b7
-BuildRequires:  msv-msv
-BuildRequires:  relaxngDatatype
-BuildRequires:  bea-stax
-BuildRequires:  bea-stax-api
-BuildRequires:  ws-jaxme
-BuildRequires:  xalan-j2
-BuildRequires:  xerces-j2
-BuildRequires:  xpp2
-BuildRequires:  xpp3
-BuildRequires:  msv-xsdlib
-Requires:  xpp2
-Requires:  xpp3
-Requires:  xerces-j2
-Requires:  msv-msv
-Requires:  msv-xsdlib
-Requires:  relaxngDatatype
-Requires:  isorelax
-Requires:  jaxen-bootstrap >= 0:1.1-0.b7
-Requires:  jpackage-utils >= 0:1.6
-Requires:  bea-stax
-Requires:  bea-stax-api
-Requires:  ws-jaxme
-Requires:  xalan-j2
-BuildArch:      noarch
+BuildArch:	noarch
+BuildRequires:	python
+# Literal, so the first rpmbuild -bs records them before sysjar is installed.
+BuildRequires:	maven
+BuildRequires:	java-current-devel
+BuildRequires:	mvn(jaxen:jaxen)
+BuildSystem:	maven
+BuildOption(install):	--file-name dom4j --alias dom4j:dom4j --alias org.jvnet.hudson.dom4j:dom4j
+
+Obsoletes:	%{name}-javadoc < %{version}-%{release}
+Obsoletes:	%{name}-demo < %{version}-%{release}
+Obsoletes:	%{name}-manual < %{version}-%{release}
 
 %description
-dom4j is an Open Source XML framework for Java. dom4j allows you to read,
-write, navigate, create and modify XML documents. dom4j integrates with 
-DOM and SAX and is seamlessly integrated with full XPath support. 
-
-%package demo
-Summary:        Samples for %{name}
-Group:          Documentation
-Requires:       dom4j = 0:%{version}-%{release}
-
-%description demo
-Samples for %{name}.
-
-%package manual
-Summary:        Manual for %{name}
-Group:          Documentation
-
-%description manual
-Documentation for %{name}.
-
-%package javadoc
-Summary:        Javadoc for %{name}
-Group:          Documentation
-
-%description javadoc
-Javadoc for %{name}.
-
+dom4j is a Java library for reading and writing XML.
+2.2.0 requires Java 11. XPath uses the system jaxen jar. The dom4j
+navigator classes ship in this jar because the jaxen package was built
+without them. Schema datatype, JAXB, and XmlPull integrations are left
+out: xsdlib, Jakarta XML Binding, and the pull parsers are not packaged.
+Tests are skipped.
 
 %prep
-%setup -q 
-# replace run.sh
-cp -p %{SOURCE1} run.sh
-# fix for deleted jars
-mv build.xml build.xml.orig
-sed -e '/unjar/d' -e 's|,cookbook/\*\*,|,|' build.xml.orig > build.xml
+%autosetup -n dom4j-version-%{version}
+rm -rf gradle src/test src/example
+python - <<'PY'
+import shutil
+import tarfile
+from pathlib import Path
 
-%patch0 -b .sav
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
+src = Path("src/main/java")
+for rel in (
+    "org/dom4j/datatype",
+    "org/dom4j/jaxb",
+    "org/dom4j/xpp",
+    "org/dom4j/io/XPPReader.java",
+    "org/dom4j/io/XPP3Reader.java",
+):
+    path = src / rel
+    if path.is_dir():
+        shutil.rmtree(path)
+    elif path.is_file():
+        path.unlink()
 
-%build
-pushd lib
-ln -sf $(build-classpath xpp2)
-ln -sf $(build-classpath relaxngDatatype)
-ln -sf $(build-classpath jaxme/jaxmeapi) 
-ln -sf $(build-classpath msv-xsdlib) 
-ln -sf $(build-classpath msv-msv) 
-ln -sf $(build-classpath jaxen) 
-ln -sf $(build-classpath bea-stax-api) 
-#pushd test
-#ln -sf $(build-classpath bea-stax-ri)
-#ln -sf $(build-classpath junitperf)
-#ln -sf $(build-classpath junit)
-#popd
-ln -sf $(build-classpath xpp3) 
-pushd tools
-ln -sf $(build-classpath jaxme/jaxmexs) 
-ln -sf $(build-classpath xalan-j2) 
-ln -sf $(build-classpath jaxme/jaxmejs) 
-ln -sf $(build-classpath jtidy) 
-ln -sf $(build-classpath isorelax) 
-ln -sf $(build-classpath jaxme/jaxme2) 
-ln -sf $(build-classpath xerces-j2) 
-popd
-popd
+members = (
+    "jaxen-2.0.6/core/src/java/main/org/jaxen/dom4j/DocumentNavigator.java",
+    "jaxen-2.0.6/core/src/java/main/org/jaxen/dom4j/Dom4jXPath.java",
+)
+with tarfile.open("%{SOURCE1}") as archive:
+    for name in members:
+        extracted = archive.extractfile(name)
+        if extracted is None:
+            raise SystemExit("missing " + name)
+        dest = src / "org/jaxen/dom4j" / Path(name).name
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(extracted.read())
 
-# FIXME: test needs to be fixed
-ant all samples # test
+java_files = list(src.rglob("*.java"))
+if len(java_files) != 164:
+    raise SystemExit("java files " + str(len(java_files)))
+if list(Path(".").rglob("*.jar")):
+    raise SystemExit("prebuilt jar remains")
+for rel in (
+    "org/dom4j/datatype",
+    "org/dom4j/jaxb",
+    "org/dom4j/xpp",
+    "org/dom4j/io/XPPReader.java",
+    "org/dom4j/io/XPP3Reader.java",
+):
+    if (src / rel).exists():
+        raise SystemExit("still present " + rel)
+navigator = src / "org/jaxen/dom4j/Dom4jXPath.java"
+if "class Dom4jXPath" not in navigator.read_text(encoding="utf-8"):
+    raise SystemExit("navigator was not extracted")
 
-%install
-# jars
-mkdir -p $RPM_BUILD_ROOT%{_javadir}
-cp -p build/%{name}.jar \
-  $RPM_BUILD_ROOT%{_javadir}/%{name}.jar
+Path("pom.xml").write_text("""<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.dom4j</groupId>
+  <artifactId>dom4j</artifactId>
+  <version>%{version}</version>
+  <packaging>jar</packaging>
+  <name>dom4j</name>
+  <description>XML framework. XPath uses the system jaxen jar.</description>
+  <url>https://dom4j.github.io/</url>
+  <licenses>
+    <license>
+      <name>BSD</name>
+      <url>https://github.com/dom4j/dom4j/blob/master/LICENSE</url>
+    </license>
+  </licenses>
+  <dependencies>
+    <dependency>
+      <groupId>jaxen</groupId>
+      <artifactId>jaxen</artifactId>
+      <version>2.0.6</version>
+    </dependency>
+  </dependencies>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.12.1</version>
+        <configuration>
+          <source>11</source>
+          <target>11</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.3.0</version>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Automatic-Module-Name>org.dom4j</Automatic-Module-Name>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+""", encoding="utf-8")
+pom = Path("pom.xml").read_text(encoding="utf-8")
+for needle in (
+    "<groupId>org.dom4j</groupId>",
+    "<artifactId>jaxen</artifactId>",
+    "<version>2.0.6</version>",
+    "<version>%{version}</version>",
+    "<source>11</source>",
+    "<target>11</target>",
+    "<Automatic-Module-Name>org.dom4j</Automatic-Module-Name>",
+):
+    if needle not in pom:
+        raise SystemExit("pom missing " + needle)
+for needle in ("junit", "xsdlib", "jakarta.xml.bind", "xpp3", "pull-parser", "SNAPSHOT", "<release>"):
+    if needle in pom:
+        raise SystemExit("pom still contains " + needle)
+PY
 
-# javadoc
-mkdir -p $RPM_BUILD_ROOT%{_javadocdir}/%{name}
-pushd build/doc/javadoc
-for f in `find -name \*.html -o -name \*.css`; do
-  sed -i 's/\r//g' $f;
-done
-popd
-cp -pr build/doc/javadoc/* $RPM_BUILD_ROOT%{_javadocdir}/%{name}
-
-# manual
-mkdir -p $RPM_BUILD_ROOT%{_docdir}/%{name}
-rm -rf docs/apidocs docs/clover
-pushd docs
-for f in `find -name \*.html -o -name \*.css -o -name \*.java`; do
-  sed -i 's/\r//g' $f;
-done
-popd
-cp -pr docs/* $RPM_BUILD_ROOT%{_docdir}/%{name}
-tr -d \\r <LICENSE.txt >tmp.file; mv tmp.file LICENSE.txt
-cp -p LICENSE.txt $RPM_BUILD_ROOT%{_docdir}/%{name}
-
-# demo
-mkdir -p $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}/classes/org/dom4j
-cp -pr xml $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}
-mkdir -p $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}/src
-cp -pr src/samples $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}/src
-cp -pr build/classes/org/dom4j/samples $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}/classes/org/dom4j
-install -m 755 run.sh $RPM_BUILD_ROOT%{_datadir}/%{name}-%{version}
-
-# POM and depmap
-install -d -m 755 $RPM_BUILD_ROOT%{_mavenpomdir}
-install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_mavenpomdir}/JPP-%{name}.pom
-%add_maven_depmap -a "org.jvnet.hudson.dom4j:dom4j"
+%build -a
+cat > manifest-addition <<'EOF'
+Automatic-Module-Name: org.dom4j
+EOF
+jar ufm target/dom4j-%{version}.jar manifest-addition
+java --module-path target/dom4j-%{version}.jar --describe-module org.dom4j > module-describe.txt
+# A versioned jar prints "name@version ... automatic", not "name automatic".
+grep -q '^org.dom4j' module-describe.txt || { cat module-describe.txt; exit 1; }
+grep -q ' automatic$' module-describe.txt || { cat module-describe.txt; exit 1; }
+grep -q 'contains org.jaxen.dom4j' module-describe.txt || { cat module-describe.txt; exit 1; }
 
 %files -f .mfiles
-%dir %{_docdir}/%{name}
-%doc %{_docdir}/%{name}/LICENSE.txt
-
-%files javadoc
-%dir %{_docdir}/%{name}
-%doc %{_docdir}/%{name}/LICENSE.txt
-%{_javadocdir}/*
-
-%files manual
-%doc %{_docdir}/%{name}
-
-%files demo
-%attr(0755,root,root) %{_datadir}/%{name}-%{version}/run.sh
-%{_datadir}/%{name}-%{version}
-
-%changelog
-* Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:1.6.1-22
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
-
-* Thu May 29 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 0:1.6.1-21
-- Use .mfiles generated during build
-
-* Fri Dec 06 2013 Michal Srb <msrb@redhat.com> - 0:1.6.1-20
-- Add ability to disable HTML handling
-
-* Wed Oct 16 2013 Michal Srb <msrb@redhat.com> - 0:1.6.1-19
-- Port to JAXP 1.4
-
-* Wed Aug 07 2013 Michal Srb <msrb@redhat.com> - 0:1.6.1-18
-- Unversioned doc dir (Resolves: #993729)
-- See: http://fedoraproject.org/wiki/Changes/UnversionedDocdirs
-
-* Fri Aug 02 2013 Michal Srb <msrb@redhat.com> - 0:1.6.1-17
-- Add create-tarball.sh script to SRPM
-
-* Thu Jul 25 2013 Michal Srb <msrb@redhat.com> - 0:1.6.1-16
-- Properly remove references to ConcurrentReaderHashMap
-
-* Tue Jul 02 2013 Michal Srb <msrb@redhat.com> - 0:1.6.1-15
-- Remove file with unclear licensing (Resolves: rhbz#976180)
-
-* Wed Jun 19 2013 Michal Srb <msrb@redhat.com> - 0:1.6.1-14
-- Install license file with javadoc subpackage
-
-* Wed Feb 13 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:1.6.1-13
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
-
-* Thu Nov  1 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0:1.6.1-12
-- Add maven POM
-
-* Mon Oct 29 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0:1.6.1-11
-- Cleanup source tarball from non-free content
-- Resolves: rhbz#848875
-
-* Fri Oct 12 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0:1.6.1-10
-- Disable test dependencies because tests are skipped
-
-* Wed Jul 18 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:1.6.1-9
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
-
-* Fri Apr 6 2012 Alexander Kurtakov <akurtako@redhat.com> 0:1.6.1-8
-- Simplify packaging and remove old things.
-
-* Fri Jan 13 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:1.6.1-7
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
-
-* Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:1.6.1-6
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
-
-* Fri Jul 24 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:1.6.1-5
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
-
-* Tue Feb 24 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:1.6.1-4
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
-
-* Wed Jul  9 2008 Tom "spot" Callaway <tcallawa@redhat.com> 1.6.1-3
-- drop repotag
-
-* Wed Oct 17 2007 Deepak Bhole <dbhole@redhat.com> 1.6.1-2jpp.3
-- Resaolve bz#302321: Add copyright header that was accidentally removed.
-
-* Mon Mar 26 2007 Nuno Santos <nsantos@redhat.com> - 0:1.6.1-2jpp.2
-- fix unowned directory
-
-* Wed Feb 14 2007 Jeff Johnston <jjohnstn@redhat.com> - 0:1.6.1-2jpp.1
-- Resolves: #227049
-- Updated per Fedora package review process
-- Modified dom4j-1.6.1-build_xml.patch to include jaxp 1.2 apis on
-  boot classpath
-- Added new patch for javadocs
-- Add buildrequires for jaxp = 1.2
-
-* Mon Jan 30 2006 Ralph Apel <r.apel@r-apel.de> - 0:1.6.1-2jpp
-- Change STAX dependency to free bea-stax and bea-stax-api
-
-* Wed Aug 17 2005 Ralph Apel <r.apel@r-apel.de> - 0:1.6.1-1jpp
-- Upgrade to 1.6.1
-- Now requires xpp3 additionally to xpp2
-
-* Thu Sep 09 2004 Ralph Apel <r.apel@r-apel.de> - 0:1.5-1jpp
-- Upgrade to 1.5
-- Drop saxpath requirement as this is now included in jaxen
-
-* Fri Aug 20 2004 Ralph Apel <r.apel@r-apel.de> - 0:1.4-3jpp
-- Upgrade to Ant 1.6.X
-- Build with ant-1.6.2
-
-* Tue Jul 06 2004 Ralph Apel <r.apel@r-apel.de> - 0:1.4-2jpp
-- Replace non-free msv with free relaxngDatatype xsdlib isorelax msv-strict
-- Relax some versioned dependencies
-
-* Mon Jan 19 2004 Ralph Apel <r.apel@r-apel.de> - 0:1.4-1jpp
-- First JPackage release
-
+%doc LICENSE README.md

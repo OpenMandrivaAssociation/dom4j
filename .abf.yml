@@ -1,2 +1,5 @@
-sources:
+removed_sources:
   dom4j-1.6.1-clean.tar.xz: b437580199228a96b37e3d3b510bf3a3621583a4
+sources:
+  dom4j-2.2.0.tar.gz: e643f4cad36501863d09d6278b8e318430274f6f
+  jaxen-2.0.6.tar.gz: 3f09cb469df61b02c048638a65fdaa7efaa14606
